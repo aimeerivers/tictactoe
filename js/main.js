@@ -64,7 +64,10 @@ function handleTurn(event) {
   let idx = squares.findIndex(function(square) {
     return square === event.target;
   });
+  takeTurn(idx);
+};
 
+function takeTurn(idx) {
   if (win === null && board[idx] === '') {
     board[idx] = turn;
     win = getWinner();
