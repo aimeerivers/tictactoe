@@ -24,11 +24,15 @@ const messages = document.querySelector('h2');
 
 /*----- event listeners -----*/
 document.getElementById('board').addEventListener('click', handleTurn);
-document.getElementById('reset-button').addEventListener('click', init);
+document.getElementById('reset-button').addEventListener('click', reset);
 
 /*----- functions -----*/
 
 function init() {
+  reset();
+}
+
+function reset() {
   board = [
     '', '', '',
     '', '', '',
