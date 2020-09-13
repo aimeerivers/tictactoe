@@ -9,10 +9,12 @@ const winningCombos = [
   [0, 4, 8],
   [2, 4, 6]
 ];
+const turns = ['X', 'O'];
+
 
 /*----- app's state (variables) -----*/
 let board;
-let turn = 'X';
+let turn;
 let win;
 let winningCombo = null;
 
@@ -32,7 +34,8 @@ function init() {
     '', '', '',
     '', '', ''
   ];
-  turn = 'X';
+  turn = turns[Math.floor(Math.random() * turns.length)];
+
   win = null;
 
   var winningSquares = document.getElementsByClassName('win');
