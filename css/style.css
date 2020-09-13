@@ -28,15 +28,16 @@ h2 {
 .flex-wrap {
   /* tells the container to drop down once it reaches max-width */
   flex-wrap: wrap;
-  height: 432px;
-  width: 432px;
+  height: 312px;
+  width: 312px;
+  margin: 20px;
 }
 
 .square {
   border: 2px solid rgba(0, 0, 0, .75);
-  height: 140px;
-  width: 140px;
-  font-size: 120px;
+  height: 100px;
+  width: 100px;
+  font-size: 90px;
 }
 
 .square.win {
