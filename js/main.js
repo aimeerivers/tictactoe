@@ -11,6 +11,9 @@ const winningCombos = [
 ];
 const turns = ['X', 'O'];
 
+const params = new URLSearchParams(window.location.search);
+const mode = params.get("mode");
+
 
 /*----- app's state (variables) -----*/
 let board;
@@ -28,7 +31,45 @@ document.getElementById('reset-button').addEventListener('click', reset);
 
 /*----- functions -----*/
 
+class Player {
+  constructor(turn) {
+    this.turn = turn;
+    this.waitForTurn();
+  };
+
+  waitForTurn() {
+    var self = this;
+    setInterval(function() {
+      if (messages.textContent === `${self.turn} wins the game!`) {
+        self.handleWin();
+      };
+      if (messages.textContent === `It's ${self.turn}'s turn!`) {
+        self.takeTurn();
+      };
+    }, 100);
+  };
+
+  takeTurn() {
+    takeTurn(this.calculateBestMove());
+  };
+
+  calculateBestMove() {
+    var possibleMoves = [];
+    board.forEach(function(value, idx) {
+      if (value == '') possibleMoves.push(idx);
+    });
+    return possibleMoves[Math.floor(Math.random() * possibleMoves.length)];;
+  }
+
+  handleWin() {
+    console.log("I won!");
+    messages.textContent = `Hooray, ${this.turn} won!`;
+  }
+};
+
 function init() {
+  if(mode == "alex" || mode == "training") var alex = new Player('X');
+  if(mode == "oak" || mode == "training") var oak = new Player('O');
   reset();
 }
 

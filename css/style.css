@@ -50,5 +50,17 @@ h2 {
   border: 1px solid black;
   height: 55px;
   width: 100px;
+  margin: 20px;
+}
+
+.options {
+  font-size: 20px;
   margin: 10px;
+}
+
+.options a {
+  color: black;
+  font-weight: bold;
+  padding: 10px;
+  display: block;
 }
