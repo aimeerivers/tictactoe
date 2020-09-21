@@ -14,11 +14,16 @@ const turns = ['X', 'O'];
 const params = new URLSearchParams(window.location.search);
 const mode = params.get("mode");
 
+const pollSpeed = 30;
+const resetSpeed = 150;
+
 
 /*----- app's state (variables) -----*/
 let board;
 let turn;
-let win;
+let winner;
+let state;
+let players = [];
 let winningCombo = null;
 
 /*----- cached element references -----*/
@@ -34,20 +39,30 @@ document.getElementById('reset-button').addEventListener('click', reset);
 class Player {
   constructor(turn) {
     this.turn = turn;
-    this.waitForTurn();
   };
 
-  waitForTurn() {
+  startPolling() {
     var self = this;
-    setInterval(function() {
-      if (messages.textContent === `${self.turn} wins the game!`) {
-        self.handleWin();
-      };
-      if (messages.textContent === `It's ${self.turn}'s turn!`) {
+    self.poll = setInterval(function() {
+      if (state === 'win') {
+        self.stopPolling();
+        if (winner === self.turn) {
+          self.handleWinning();
+        } else {
+          self.handleLosing();
+        }
+      } else if (state === 'tie') {
+        self.stopPolling();
+        self.handleTie();
+      } else if (state === 'playing' && turn === self.turn) {
         self.takeTurn();
       };
-    }, 100);
+    }, pollSpeed);
   };
+
+  stopPolling() {
+    clearInterval(this.poll);
+  }
 
   takeTurn() {
     takeTurn(this.calculateBestMove());
@@ -61,19 +76,33 @@ class Player {
     return possibleMoves[Math.floor(Math.random() * possibleMoves.length)];;
   }
 
-  handleWin() {
-    console.log("I won!");
-    messages.textContent = `Hooray, ${this.turn} won!`;
+  handleWinning() {
+    console.log("I won! I am " + this.turn);
+  }
+
+  handleLosing() {
+    console.log("I Lost :( I am " + this.turn);
+  }
+
+  handleTie() {
+    console.log("It was a tie.");
   }
 };
 
 function init() {
-  if(mode == "alex" || mode == "training") var alex = new Player('X');
-  if(mode == "oak" || mode == "training") var oak = new Player('O');
+  if(mode == "alex" || mode == "training") {
+    var alex = new Player('X');
+    players.push(alex);
+  }
+  if(mode == "oak" || mode == "training") {
+    var oak = new Player('O');
+    players.push(oak);
+  }
   reset();
 }
 
 function reset() {
+  players.forEach(function(player) { player.stopPolling(); });
   board = [
     '', '', '',
     '', '', '',
@@ -81,13 +110,11 @@ function reset() {
   ];
   turn = turns[Math.floor(Math.random() * turns.length)];
 
-  win = null;
+  winner = null;
+  state = 'playing';
+  players.forEach(function(player) { player.startPolling(); });
 
-  var winningSquares = document.getElementsByClassName('win');
-  while (winningSquares.length > 0) {
-    winningSquares[0].classList.remove('win');
-  }
-
+  hideWin();
   render();
 };
 
@@ -95,10 +122,10 @@ function render() {
   board.forEach(function(mark, index){
     squares[index].textContent = mark;
   });
-  if ( win === 'T' ) {
+  if (state === 'tie') {
     messages.textContent = `That's a tie!`
-  } else if (win) { 
-    messages.textContent = `${win} wins the game!`
+  } else if (state === 'win') { 
+    messages.textContent = `${winner} wins the game!`
     displayWin();
   } else {
     messages.textContent = `It's ${turn}'s turn!`
@@ -113,25 +140,42 @@ function handleTurn(event) {
 };
 
 function takeTurn(idx) {
-  if (win === null && board[idx] === '') {
+  if (winner === null && board[idx] === '') {
     board[idx] = turn;
-    win = getWinner();
-    turn = turn === 'X' ? 'O' : 'X';
+    winner = getWinner();
+    if (winner === 'T') {
+      state = 'tie';
+    } else if (winner === 'X' || winner === 'O') {
+      state = 'win';
+    } else {
+      turn = turn === 'X' ? 'O' : 'X';
+    }
     render();
+
+    if(mode === 'training' && state !== 'playing') {
+      setTimeout(reset, resetSpeed);
+    }
   }
 };
 
 function getWinner() {
-  let winner = null;
+  let tempWinner = null;
   winningCombos.forEach(function(combo, index) {
     if (board[combo[0]] && board[combo[0]] === board[combo[1]] &&
       board[combo[0]] === board[combo[2]]) {
-        winner = board[combo[0]];
+        tempWinner = board[combo[0]];
         winningCombo = combo;
       }
   });
-  return winner ? winner : board.includes('') ? null : 'T';
+  return tempWinner ? tempWinner : board.includes('') ? null : 'T';
 };
+
+function hideWin() {
+  var winningSquares = document.getElementsByClassName('win');
+  while (winningSquares.length > 0) {
+    winningSquares[0].classList.remove('win');
+  }
+}
 
 function displayWin() {
   winningCombo.forEach(function(number, index) {
