@@ -10,8 +10,8 @@ const winningCombos = [
   [2, 4, 6]
 ];
 const turns = ['X', 'O'];
-const pollSpeed = 30;
-const resetSpeed = 150;
+const pollSpeed = 20;
+const resetSpeed = 100;
 
 
 /*----- app's state (variables) -----*/
