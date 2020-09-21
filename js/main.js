@@ -10,20 +10,21 @@ const winningCombos = [
   [2, 4, 6]
 ];
 const turns = ['X', 'O'];
-
-const params = new URLSearchParams(window.location.search);
-const mode = params.get("mode");
-
 const pollSpeed = 30;
 const resetSpeed = 150;
 
 
 /*----- app's state (variables) -----*/
+let params = new URLSearchParams(window.location.search);
+let mode = params.get("mode");
+
+let alex, oak;
+let activePlayers = [];
+
 let board;
 let turn;
 let winner;
 let state;
-let players = [];
 let winningCombo = null;
 
 /*----- cached element references -----*/
@@ -34,12 +35,31 @@ const messages = document.querySelector('h2');
 document.getElementById('board').addEventListener('click', handleTurn);
 document.getElementById('reset-button').addEventListener('click', reset);
 
-/*----- functions -----*/
+document.getElementById('play-alex').addEventListener('click', function(e) {
+  e.preventDefault();
+  playAlex();
+});
+
+document.getElementById('play-oak').addEventListener('click', function(e) {
+  e.preventDefault();
+  playOak();
+});
+
+document.getElementById('training-mode').addEventListener('click', function(e) {
+  e.preventDefault();
+  trainingMode();
+});
+
+/*----- Player functions -----*/
 
 class Player {
   constructor(turn) {
     this.turn = turn;
   };
+
+  reset() {
+    this.stopPolling();
+  }
 
   startPolling() {
     var self = this;
@@ -89,20 +109,47 @@ class Player {
   }
 };
 
+/*----- Page functions -----*/
+
 function init() {
-  if(mode == "alex" || mode == "training") {
-    var alex = new Player('X');
-    players.push(alex);
+  alex = new Player('X');
+  oak = new Player('O');
+
+  if(mode == "alex") {
+    playAlex();
+  } else if(mode == "oak") {
+    playOak();
+  } else if(mode == "training") {
+    trainingMode();
+  } else {
+    reset();
   }
-  if(mode == "oak" || mode == "training") {
-    var oak = new Player('O');
-    players.push(oak);
-  }
+}
+
+function playAlex() {
+  resetPlayers();
+  activePlayers = [alex];
   reset();
 }
 
+function playOak() {
+  resetPlayers();
+  activePlayers = [oak];
+  reset();
+}
+
+function trainingMode() {
+  resetPlayers();
+  activePlayers = [alex, oak];
+  reset();
+}
+
+function resetPlayers() {
+  activePlayers.forEach(function(player) { player.reset(); });
+}
+
 function reset() {
-  players.forEach(function(player) { player.stopPolling(); });
+  resetPlayers();
   board = [
     '', '', '',
     '', '', '',
@@ -112,7 +159,7 @@ function reset() {
 
   winner = null;
   state = 'playing';
-  players.forEach(function(player) { player.startPolling(); });
+  activePlayers.forEach(function(player) { player.startPolling(); });
 
   hideWin();
   render();
@@ -152,7 +199,7 @@ function takeTurn(idx) {
     }
     render();
 
-    if(mode === 'training' && state !== 'playing') {
+    if(activePlayers.length === 2 && state !== 'playing') {
       setTimeout(reset, resetSpeed);
     }
   }
