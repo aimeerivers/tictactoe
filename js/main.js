@@ -215,6 +215,7 @@ function takeTurn(idx) {
     if (winner === 'T') {
       state = 'tie';
       results['tie'] += 1;
+      setTimeout(updateResultsTable, pollSpeed * 2);
     } else if (winner === 'X' || winner === 'O') {
       state = 'win';
       results['win'] += 1;
