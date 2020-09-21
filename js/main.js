@@ -27,9 +27,20 @@ let winner;
 let state;
 let winningCombo = null;
 
+let results = {
+  'win': 0,
+  'tie': 0,
+  'X': 0,
+  'O': 0
+}
+
 /*----- cached element references -----*/
 const squares = Array.from(document.querySelectorAll('#board div'));
 const messages = document.querySelector('h2');
+const resultsHuman = document.getElementById('results-human');
+const resultsAlex = document.getElementById('results-alex');
+const resultsOak = document.getElementById('results-oak');
+const resultsTie = document.getElementById('results-tie');
 
 /*----- event listeners -----*/
 document.getElementById('board').addEventListener('click', handleTurn);
@@ -98,6 +109,7 @@ class Player {
 
   handleWinning() {
     console.log("I won! I am " + this.turn);
+    results[this.turn] += 1;
   }
 
   handleLosing() {
@@ -166,9 +178,12 @@ function reset() {
 };
 
 function render() {
+  // Update board
   board.forEach(function(mark, index){
     squares[index].textContent = mark;
   });
+
+  // Status message
   if (state === 'tie') {
     messages.textContent = `That's a tie!`
   } else if (state === 'win') { 
@@ -178,6 +193,13 @@ function render() {
     messages.textContent = `It's ${turn}'s turn!`
   }
 };
+
+function updateResultsTable() {
+  resultsTie.textContent = results['tie'];
+  resultsAlex.textContent = results['X'];
+  resultsOak.textContent = results['O'];
+  resultsHuman.textContent = results['win'] - results['X'] - results['O'];
+}
 
 function handleTurn(event) {
   let idx = squares.findIndex(function(square) {
@@ -192,8 +214,11 @@ function takeTurn(idx) {
     winner = getWinner();
     if (winner === 'T') {
       state = 'tie';
+      results['tie'] += 1;
     } else if (winner === 'X' || winner === 'O') {
       state = 'win';
+      results['win'] += 1;
+      setTimeout(updateResultsTable, pollSpeed * 2);
     } else {
       turn = turn === 'X' ? 'O' : 'X';
     }
