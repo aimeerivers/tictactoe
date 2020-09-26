@@ -13,6 +13,9 @@ const turns = ['X', 'O'];
 const pollSpeed = 20;
 const resetSpeed = 100;
 
+const startWeighting = 3;
+const rewardWeighting = 3;
+const punishWeighting = 1;
 
 /*----- app's state (variables) -----*/
 let params = new URLSearchParams(window.location.search);
@@ -66,6 +69,7 @@ document.getElementById('training-mode').addEventListener('click', function(e) {
 class Player {
   constructor(turn) {
     this.turn = turn;
+    this.knownStates = {};
   };
 
   reset() {
@@ -100,11 +104,32 @@ class Player {
   };
 
   calculateBestMove() {
+    var currentState = board.map(function(square) { return square == '' ? '-' : square; });
+    var knownState = this.findOrCreateState(currentState);
+
     var possibleMoves = [];
-    board.forEach(function(value, idx) {
-      if (value == '') possibleMoves.push(idx);
-    });
+    for(var k in knownState) {
+      for (let i = 0; i < knownState[k]; i++) {
+        possibleMoves.push(k);
+      }
+    }
+
     return possibleMoves[Math.floor(Math.random() * possibleMoves.length)];;
+  }
+
+  findOrCreateState(boardState) {
+    var state = this.knownStates[boardState.join("")];
+    if(state === undefined) { state = this.createState(boardState); }
+    return state;
+  }
+
+  createState(boardState) {
+    var moveOptions = {};
+    boardState.forEach(function(square, index) {
+      if(square === "-") { moveOptions[index] = startWeighting; }
+    });
+    this.knownStates[boardState.join("")] = moveOptions;
+    return moveOptions;
   }
 
   handleWinning() {
