@@ -14,8 +14,9 @@ const pollSpeed = 20;
 const resetSpeed = 100;
 
 const startWeighting = 3;
-const rewardWeighting = 3;
-const punishWeighting = 1;
+const winWeighting = 3;
+const tieWeighting = 1;
+const loseWeighting = -2;
 
 /*----- app's state (variables) -----*/
 let params = new URLSearchParams(window.location.search);
@@ -70,10 +71,12 @@ class Player {
   constructor(turn) {
     this.turn = turn;
     this.knownStates = {};
+    this.rememberedTurns = [];
   };
 
   reset() {
     this.stopPolling();
+    this.rememberedTurns = [];
   }
 
   startPolling() {
@@ -114,7 +117,9 @@ class Player {
       }
     }
 
-    return possibleMoves[Math.floor(Math.random() * possibleMoves.length)];;
+    var chosenMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+    this.rememberedTurns.push({'state': currentState.join(""), 'chosenMove': chosenMove.toString()});
+    return chosenMove;
   }
 
   findOrCreateState(boardState) {
@@ -133,16 +138,37 @@ class Player {
   }
 
   handleWinning() {
-    console.log("I won! I am " + this.turn);
+    var self = this;
+    this.rememberedTurns.forEach(function(mem) {
+      var moves = self.knownStates[mem.state];
+      if(moves[mem.chosenMove] > 1) {
+        moves[mem.chosenMove] += winWeighting;
+      }
+      self.knownStates[mem.state] = moves;
+    });
     results[this.turn] += 1;
   }
 
   handleLosing() {
-    console.log("I Lost :( I am " + this.turn);
+    var self = this;
+    this.rememberedTurns.forEach(function(mem) {
+      var moves = self.knownStates[mem.state];
+      if(moves[mem.chosenMove] > 1) {
+        moves[mem.chosenMove] += loseWeighting;
+      }
+      self.knownStates[mem.state] = moves;
+    });
   }
 
   handleTie() {
-    console.log("It was a tie.");
+    var self = this;
+    this.rememberedTurns.forEach(function(mem) {
+      var moves = self.knownStates[mem.state];
+      if(moves[mem.chosenMove] > 1) {
+        moves[mem.chosenMove] += tieWeighting;
+      }
+      self.knownStates[mem.state] = moves;
+    });
   }
 };
 
